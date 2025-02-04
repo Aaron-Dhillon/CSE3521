@@ -42,7 +42,15 @@ class Travel:
         
     def goal_test(self,node:Node):
         return node.state== self.goal_state
-
+    
+    def solution(self,node:Node,numExpNodes):
+        n = node
+        output = n.state
+        while(n.parent is not None):
+            output = n.parent.state + " to " + output
+            n = n.parent
+        output = output + ":\t" + str(numExpNodes) + " expanded (including goal state)"
+        print(output)
     
 class Puzzle:
     #init_state should already be a list
@@ -123,20 +131,29 @@ class Puzzle:
 
     def goal_test(self,node:Node):
         return node.state == self.goal_state
+    
+    def solution(self,node:Node,numExpNodes):
+
+        def print_state(state):
+            output = ""
+            for row in state:
+                output = output + ("| " + " | ".join(row) + " | \n")
+            output = output + "\n"
+            return output
 
 
+        n = node
+        #output = str(n.state)
+        output = print_state(n.state)
+        while(n.parent is not None):
+            output = print_state(n.parent.state) + "    to \n\n"  + output
+            n = n.parent
+
+        output = output + str(numExpNodes) + " expanded (including goal state)"
+        print(output)
+    
 
 class Search:
-        @staticmethod
-        def solution(node:Node, numExpNodes):
-            n = node
-            output = str(n.state)
-            while(n.parent is not None):
-                output = str(n.parent.state) + " to "  + output
-                n = n.parent
-
-            output = output + ":\t" + str(numExpNodes) + " expanded (including goal state)"
-            print(output)
 
         @staticmethod
         def search(problem:Union[Travel,Puzzle], is_ucs:bool):
@@ -156,7 +173,7 @@ class Search:
                 node = (hq.heappop(frontier))[1]
                 if(problem.goal_test(node)):
                     explored[str(node.state)]  = node.cost
-                    Search.solution(node, len(explored))
+                    problem.solution(node, len(explored))
                     return 1
                 explored[str(node.state)] = node.cost
                 problem.generateActions(node)
