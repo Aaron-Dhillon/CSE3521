@@ -86,8 +86,23 @@ class Puzzle:
     
         return sum
     
+    def otherHueristic(self, state):
+        #This Hueristic counts the number of spaces away the entry is from its proper entry, but only counting horozontally
+        # so if entry 8 is in slot [0,0], its hueritic would be 8 since you coul start at [0,0] and couldnt across each row until
+        #destination is reached
+        n = len(state)
+        sum = 0 
+        index = 0
+        for r in range(0,n):
+            for c in range(0,n):
+                entry = int(state[r][c])
+                sum = sum + (abs(entry - index))
+                index = index+1
+        return sum 
+    
+
     def generateActions(self, node:Node):
-        #print(str(node.state) + ": " + str(node.cost))
+        print(str(node.state) + ": " + str(node.h))
         # if node.parent is not None:
         #     print("Parent: " + str(node.parent.state))
         # #find 0 index and row
@@ -96,7 +111,6 @@ class Puzzle:
         curr_state = node.state
         n = len(curr_state)
         for r in range(0, n):
-            row = curr_state[r]
             for c in range(0, n):
                 if curr_state[r][c] == '0':
                     x_dir = [0,0,-1,1]
@@ -122,7 +136,7 @@ class Puzzle:
 
 class Search:
         @staticmethod
-        def solution(node:Node, numExpNodes, exp):
+        def solution(node:Node, numExpNodes):
             n = node
             output = str(n.state)
             while(n.parent is not None):
@@ -154,7 +168,7 @@ class Search:
 
                 if(problem.goal_test(node)):
                     explored[str(node.state)]  = node.cost
-                    Search.solution(node, len(explored),explored)
+                    Search.solution(node, len(explored))
                     return 1
                 explored[str(node.state)] = node.cost
                 problem.generateActions(node)
