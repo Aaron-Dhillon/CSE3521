@@ -1,5 +1,6 @@
 ## Authors: Ben Varkey, Aaron Dhillon
 
+import time
 import heapq as hq
 import pandas as pd
 import numpy as np
@@ -235,7 +236,10 @@ def main():
         init_state = inp.split()
         problem = Puzzle(init_state,int(n))
         if search_method == "UCS":
+            start = time.time()
             Search.search(problem, True)
+            end = time.time()
+            print(f"Time: {end - start} seconds")
         elif search_method == "A*":
             Search.search(problem, False)
 
