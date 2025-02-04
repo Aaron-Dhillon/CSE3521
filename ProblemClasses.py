@@ -1,3 +1,5 @@
+## Authors: Ben Varkey, Aaron Dhillon
+
 import heapq as hq
 import pandas as pd
 import numpy as np
