@@ -9,7 +9,6 @@ class Node:
             self.state = state #Country Name |
             self.parent = parent #Parent Country Name |
             self.actions = None
-            #self.actions = actions #List of child countries |
             self.cost = cost #cost to travel from parent |
             self.h = h #SLD |
 
@@ -36,7 +35,6 @@ class Travel:
         for column in self.data.columns:
             entry = c_row[column]
             if pd.notna(entry) and column != c_name and column != "SLD":
-                #print(node.state +": " + str(node.cost))
                 action = Node(state=column,parent=node,cost=entry+node.cost, h = self.getHeuristic(column) )
                 actions.append(action)
         node.actions = actions 
@@ -99,11 +97,8 @@ class Puzzle:
         return sum 
     
 
-    def generateActions(self, node:Node):
-        print(str(node.state) + ": " + str(node.h))
-        # if node.parent is not None:
-        #     print("Parent: " + str(node.parent.state))
-        # #find 0 index and row
+    def generateActions(self, node:Node):        
+        #find 0 index and row
         #generate states where the row/s next to 0 row have their values replaced by 0
         actions = []
         curr_state = node.state
@@ -126,7 +121,6 @@ class Puzzle:
         node.actions= actions
 
 
-          
     def goal_test(self,node:Node):
         return node.state == self.goal_state
 
@@ -143,8 +137,6 @@ class Search:
 
             output = output + ":\t" + str(numExpNodes) + " expanded (including goal state)"
             print(output)
-            # for element in exp:
-            #     print(element + ": " + str(exp[element]))
 
         @staticmethod
         def search(problem:Union[Travel,Puzzle], is_ucs:bool):
@@ -162,20 +154,16 @@ class Search:
                      print("Search Failed")
                      return 1
                 node = (hq.heappop(frontier))[1]
-              
-
                 if(problem.goal_test(node)):
                     explored[str(node.state)]  = node.cost
                     Search.solution(node, len(explored))
                     return 1
                 explored[str(node.state)] = node.cost
                 problem.generateActions(node)
-                # print(len(node.actions))
                 for child in node.actions:
                     # check if action node if in frontier and explored
                     state = str(child.state)
                     if state not in explored:
-                        #explored[state] = child.cost
                         if is_ucs:
                             hq.heappush(frontier, (child.cost, child))
                         else:
@@ -191,22 +179,16 @@ class Search:
                             n = (hq.heappop(frontier))[1]
                             updated = False
                             if is_ucs:
-                                
                                 if n.state == child.state and not updated:
-                                    # print(child.state+ ": " + str(child.cost))
                                     hq.heappush(frontier,(child.cost, child))
                                     updated = True
                                 else:
-                                    # print(node.state+ ": " + str(node.cost))
-
                                     hq.heappush(frontier,(n.cost, n))
                             elif not is_ucs:
                                 if n.state == child.state and not updated:
-                                    #print(child.state +": "+ str(child.cost + child.h))
                                     hq.heappush(frontier,(child.cost + child.h,child))
                                 else:
-                                    #print(node.state +": "+ str(node.cost + node.h))
-                                    hq.heappush(frontier,(n.cost + n.h,n))
+                                     hq.heappush(frontier,(n.cost + n.h,n))
                                    
                               
 def main():
@@ -241,4 +223,3 @@ def main():
 
 main()
     
-
