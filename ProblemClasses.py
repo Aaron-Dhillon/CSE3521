@@ -73,7 +73,6 @@ class Puzzle:
     def getHeuristic(self, state):
         n = len(state)
         sum = 0
-        index = 0
         for r in range(0, n):
             row = state[r]
             for c in range(0, n):
@@ -82,7 +81,6 @@ class Puzzle:
                 target_c = entry%n
 
                 sum = sum + (np.abs(target_r - r)+np.abs(target_c - c))
-                index = index + 1
     
         return sum
     
