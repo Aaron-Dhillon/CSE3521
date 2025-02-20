@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import pandas as pd
 
 
 def PCA(X, out_dim):
@@ -28,6 +29,19 @@ def PCA(X, out_dim):
     N = X.shape[1] # number of data instances
 
     ### Your job  starts here ###
+
+    mu = np.mean(X, axis=1, keepdims=True)
+    ## builds covariance matrix Sigma
+    Sigma = np.cov(X, bias=True)
+
+    # Perform eigendecomposition
+    V, W = np.linalg.eigh(Sigma)
+    V, W = V.real, W.real
+    sorted_indices = np.argsort(V)[::-1]
+    W = W[:, :out_dim]
+
+
+    
     """
         use the following:
         np.linalg.eigh (or np.linalg.eig) for eigendecomposition. it returns
@@ -53,7 +67,28 @@ def PCA(X, out_dim):
     produce figures and plots
 """
 
+# Load MNIST data
+mnist = pd.read_csv('PA2/mnist_test.csv').values
+# Extract images of digit 3
+digit_3 = mnist[mnist[:, 0] == 3][:, 1:]  # Select rows where label == 3, remove labels
 
+# Transpose so that we have shape (D=784, N) instead of (N, D)
+digit_3 = digit_3.T
 
+# Print dataset shape
+print("Digit 3 dataset shape:", digit_3.shape)  # (784, N)
 
+dims = [2, 8, 64, 128, 784]
+W_list, mu_list = {},{}
 
+for d in dims:
+    mu_list[d],W_list[d] = PCA(digit_3, d)  # Compute PCA projection matrix W
+
+test_img = digit_3[:, 0].reshape(-1, 1)  # Select first column and reshape
+
+reconstructions = {}
+
+for d in dims:
+    W = W_list[d]  # Get PCA projection matrix for current dimension
+    proj = W.T @ test_img  # Project onto PCA subspace
+    reconstructions[d] = W @ proj  # Reconstruct image
