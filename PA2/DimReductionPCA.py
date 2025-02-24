@@ -2,9 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import pandas as pd
+from PIL import Image
 
 
 def PCA(X, out_dim):
+    np.set_printoptions(threshold=np.inf) 
     """
     Input:
         X: a D-by-N matrix (numpy array) of the input data
@@ -23,22 +25,31 @@ def PCA(X, out_dim):
         2. np.matmul: for matrix-matrix multiplication
         3. the builtin "reshape" and "transpose()" function of a numpy array
     """
-
+    
     X = np.copy(X)
-    D = X.shape[0] # feature dimension
-    N = X.shape[1] # number of data instances
+    D = X.shape[0] # feature dimension (rows)
+    N = X.shape[1] # number of data instances (columns)
+    # print(D,N)
 
     ### Your job  starts here ###
 
     mu = np.mean(X, axis=1, keepdims=True)
+    X_centered = X - mu
     ## builds covariance matrix Sigma
-    Sigma = np.cov(X, bias=True)
+    Sigma = np.cov(X_centered, bias=True, rowvar=True)
+    # non_zero_rows = np.any(Sigma != 0, axis=1)
+
+    # print(non_zero_rows)
 
     # Perform eigendecomposition
     V, W = np.linalg.eigh(Sigma)
     V, W = V.real, W.real
-    sorted_indices = np.argsort(V)[::-1]
-    W = W[:, :out_dim]
+    # print(W[:,-(out_dim)].reshape(-1,1))
+    # print(V[-(out_dim)])
+    # sorted_indices = np.argsort(V)[::-1]
+    # print(V[sorted_indices[0]])
+    # print(W[:,sorted_indices[0]].reshape(-1,1))
+    W = W[:,-out_dim:]
 
 
     
@@ -60,6 +71,56 @@ def PCA(X, out_dim):
     ### Your job  ends here ###
 
 
+def reconstr(images,W_list,mu_list,dims):
+    #center data again
+    # mu = np.mean(images, axis=1, keepdims=True)
+    # images = images - mu
+    reconstructions = {}
+    #reconstruct to each dimension
+    for d in dims:
+        W = W_list[d]  # Get PCA projection matrix for current dimension
+        proj = W.T @ (images - mu_list[d]) # Project onto PCA subspace
+        reconstructions[d] = (W @ proj) + mu_list[d]  # Reconstruct image
+
+    return reconstructions
+
+def img_plt(og_image, reconstr, dims):
+    i = 1
+    plt.figure(figsize=(10,6))
+    plt.subplot(1,6,i)
+    plt.imshow(og_image.reshape(28,28))
+    plt.title("Original")
+    plt.xticks([])
+    plt.yticks([])
+    for d in dims:
+        i = i +1
+        plt.subplot(1,6,i)
+        plt.imshow(reconstr[d].reshape(28,28))
+        plt.title(f"{d} Image")
+        plt.xticks([])
+        plt.yticks([])
+    plt.show()
+
+def multPCA(X,dims):
+    W_list, mu_list = {},{}
+
+    for d in dims:
+        mu_list[d],W_list[d] = PCA(X, d)  # Compute PCA projection matrix W
+    return W_list,mu_list
+
+def mse_error(original, reconstr):
+    return np.mean((original - reconstr)**2)
+
+def dim_errors(test_data, reconstructions, dimesions):
+    errors = {}
+    for d in dimesions:
+        recon = reconstructions[d]
+        error = mse_error(test_data, recon)
+        errors[d] = error
+    return errors
+
+
+
 ### Your job  starts here ###   
 """
     load MNIST
@@ -69,26 +130,97 @@ def PCA(X, out_dim):
 
 # Load MNIST data
 mnist = pd.read_csv('PA2/mnist_test.csv').values
+np.set_printoptions(threshold=np.inf) 
 # Extract images of digit 3
+#Each row is a picture (sample)
+#each column is a pixel value (feature)
 digit_3 = mnist[mnist[:, 0] == 3][:, 1:]  # Select rows where label == 3, remove labels
+print("Digit 3 dataset shape:", digit_3.shape)
 
-# Transpose so that we have shape (D=784, N) instead of (N, D)
+#Transpose so that we have shape (D=784, N) instead of (N, D)
+#Each column is a picture (sample)
+#each row is a pixel value (feature)
 digit_3 = digit_3.T
 
 # Print dataset shape
 print("Digit 3 dataset shape:", digit_3.shape)  # (784, N)
 
 dims = [2, 8, 64, 128, 784]
-W_list, mu_list = {},{}
 
-for d in dims:
-    mu_list[d],W_list[d] = PCA(digit_3, d)  # Compute PCA projection matrix W
+#Pick one image and apply PCA on all dimensions
+str_indx = 9
+end_indx = 10
 
-test_img = digit_3[:, 0].reshape(-1, 1)  # Select first column and reshape
+image = digit_3[:,str_indx:end_indx].reshape(-1, end_indx - str_indx)
+#print(image)
 
-reconstructions = {}
+W_list, mu_list = multPCA(digit_3,dims)
 
-for d in dims:
-    W = W_list[d]  # Get PCA projection matrix for current dimension
-    proj = W.T @ test_img  # Project onto PCA subspace
-    reconstructions[d] = W @ proj  # Reconstruct image
+# for d in dims:
+#     mu_list[d],W_list[d] = PCA(digit_3, d)  # Compute PCA projection matrix W
+
+
+
+
+# # test_img = digit_3[:, 0].reshape(-1, 1)  # Select first column and reshape
+#plot original image
+
+#gets the reconstructions
+reconstructions = reconstr(image,W_list,mu_list,dims)
+#plots them for a single image ast different dimensionalities
+img_plt(image,reconstructions,dims)
+#reconstruct to each dimension
+# for d in dims:
+#     i = i +1
+#     W = W_list[d]  # Get PCA projection matrix for current dimension
+#     proj = W.T @ images  # Project onto PCA subspace
+#     reconstructions[d] = (W @ proj) + mu_list[d]  # Reconstruct image
+#     #plot each dimension
+#     plt.subplot(1,6,i)
+#     plt.imshow(reconstructions[d].reshape(28,28))
+#     plt.title(f"{d} Image")
+#     plt.xticks([])
+#     plt.yticks([])
+# plt.show()
+
+# (mu, W) = PCA(images,end_indx - str_indx)
+dimensions = np.arange(10, 785, 10)
+#initalize test data (100 3 images)
+test_data = digit_3[:,350:450].reshape(-1,100)
+#initialize training data for 3 
+training_3 = digit_3.reshape(-1,digit_3.shape[1])
+#initialize training data for 8 
+digit_8 =  mnist[mnist[:, 0] == 8][:, 1:]
+digit_8 = digit_8.T
+training_8 = digit_8.reshape(-1,digit_8.shape[1])
+#initialize training data for 9 
+digit_9 =  mnist[mnist[:, 0] == 9][:, 1:]
+digit_9 = digit_9.T
+training_9 = digit_9.reshape(-1,digit_9.shape[1])
+
+#training data for 3 and 8 
+training_3_8= np.append(training_3,training_8)
+#training data for 3 and 8 and 9
+training_3_8_9 = np.append(training_3_8,training_9)
+
+#Apply PCA on all 3 training sets
+#Already have training set 3s from previous calculation 
+W3_list = W_list
+mu3_list = mu_list
+#reconstruct test data using training data
+#Project test data onto training set 3s PCA Space
+recon_3 = reconstr(test_data,W3_list,mu3_list,dimensions)
+#compute training 3 and 8
+W3_8_list,mu3_8_list = multPCA(training_3_8,dimensions)
+#reconstruct test data using training data
+#Project test data onto training set 3_8s PCA Space
+recon_3_8= reconstr(test_data,W3_8_list,mu3_8_list,dimensions)
+#compute training 3 and 8 and 9
+W3_8_9_list,mu3_8_9_list = multPCA(training_3_8_9,dimensions)
+#reconstruct test data using training data
+#Project test data onto training set 3_8_9s PCA Space
+recon_3_8_9= reconstr(test_data,W3_8_9_list,mu3_8_9_list,dimensions)
+#calculate 3 errors FOR EACH DIMENSION
+errors_3 = dim_errors(test_data,recon_3,dimensions)
+errors_3_8 = dim_errors(test_data,recon_3_8,dimensions)
+errors_3_8_9 = dim_errors(test_data,recon_3_8_9,dimensions)
