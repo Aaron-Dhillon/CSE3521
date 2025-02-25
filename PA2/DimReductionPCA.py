@@ -184,29 +184,24 @@ img_plt(image,reconstructions,dims)
 # plt.show()
 
 # (mu, W) = PCA(images,end_indx - str_indx)
-dimensions = np.arange(10, 785, 10)
+dimensions = [x for x in range(10, 785, 10)]
 #initalize test data (100 3 images)
-test_data = digit_3[:,350:450].reshape(-1,100)
-#initialize training data for 3 
-training_3 = digit_3.reshape(-1,digit_3.shape[1])
+test_data = digit_3[:,350:450]
 #initialize training data for 8 
 digit_8 =  mnist[mnist[:, 0] == 8][:, 1:]
 digit_8 = digit_8.T
-training_8 = digit_8.reshape(-1,digit_8.shape[1])
 #initialize training data for 9 
 digit_9 =  mnist[mnist[:, 0] == 9][:, 1:]
 digit_9 = digit_9.T
-training_9 = digit_9.reshape(-1,digit_9.shape[1])
 
 #training data for 3 and 8 
-training_3_8= np.append(training_3,training_8)
+training_3_8= np.append(digit_3,digit_8,axis=1)
 #training data for 3 and 8 and 9
-training_3_8_9 = np.append(training_3_8,training_9)
+training_3_8_9 = np.append(training_3_8,digit_9,axis=1)
 
 #Apply PCA on all 3 training sets
 #Already have training set 3s from previous calculation 
-W3_list = W_list
-mu3_list = mu_list
+W3_list,mu3_list = multPCA(digit_3,dimensions)
 #reconstruct test data using training data
 #Project test data onto training set 3s PCA Space
 recon_3 = reconstr(test_data,W3_list,mu3_list,dimensions)
