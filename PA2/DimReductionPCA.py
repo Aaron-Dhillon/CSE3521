@@ -219,3 +219,27 @@ recon_3_8_9= reconstr(test_data,W3_8_9_list,mu3_8_9_list,dimensions)
 errors_3 = dim_errors(test_data,recon_3,dimensions)
 errors_3_8 = dim_errors(test_data,recon_3_8,dimensions)
 errors_3_8_9 = dim_errors(test_data,recon_3_8_9,dimensions)
+
+# Extract X (dimensions) and Y (error values) for each dataset
+x_values = dimensions
+y_errors_3 = [errors_3[d] for d in dimensions]
+y_errors_3_8 = [errors_3_8[d] for d in dimensions]
+y_errors_3_8_9 = [errors_3_8_9[d] for d in dimensions]
+
+# Create the plot
+plt.figure(figsize=(10, 6))
+
+# Plot each error curve
+plt.plot(x_values, y_errors_3, label="Training on Digit 3", marker='o')
+plt.plot(x_values, y_errors_3_8, label="Training on Digit 3 & 8", marker='s')
+plt.plot(x_values, y_errors_3_8_9, label="Training on Digit 3, 8 & 9", marker='^')
+
+# Labels and title
+plt.xlabel("PCA Dimensions")
+plt.ylabel("Reconstruction Error (MSE)")
+plt.title("Reconstruction Error vs PCA Dimensions")
+plt.legend()
+plt.grid(True)
+
+# Show the plot
+plt.show()
