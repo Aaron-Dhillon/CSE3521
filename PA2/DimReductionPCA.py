@@ -196,9 +196,9 @@ y_errors_3_8_9 = [errors_3_8_9[d] for d in dimensions]
 plt.figure(figsize=(10, 6))
 
 # Plot each error curve
-plt.plot(x_values, y_errors_3, label="Training on Digit 3", marker='o')
-plt.plot(x_values, y_errors_3_8, label="Training on Digit 3 & 8", marker='s')
-plt.plot(x_values, y_errors_3_8_9, label="Training on Digit 3, 8 & 9", marker='^')
+plt.plot(x_values, y_errors_3, label="Projection on Digit 3", marker='o')
+plt.plot(x_values, y_errors_3_8, label="Projection on Digit 3 & 8", marker='s')
+plt.plot(x_values, y_errors_3_8_9, label="Projection on Digit 3, 8 & 9", marker='^')
 
 # Labels and title
 plt.xlabel("PCA Dimensions")
