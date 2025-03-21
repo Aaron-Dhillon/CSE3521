@@ -96,6 +96,7 @@ class NaiveBayesClassifier(object):
             V_dictionary[word] = int(dict_count)
             dict_count += 1
         return V_dictionary
+    
     def to_BOW_sentence(self, sentence):
         n = len(self.V)
         bow = [0 for i in range(n)]
@@ -112,6 +113,14 @@ class NaiveBayesClassifier(object):
         for sentence in sentences:
             bow_array[i] = self.to_BOW_sentence(sentence)
         return bow_array
+
+    #calculates th eprior probabiilties for each class and store them in a dictionary
+    def priors(self, all_classes, training_labels):
+        #nuetral, negative, positive
+        priors = [0.0,0.0,0.0]
+        for i in range(len(all_classes)):
+            priors = training.count
+
 
 
 
@@ -133,6 +142,7 @@ class NaiveBayesClassifier(object):
         all_classes = set(training_labels)
         #-------- TO DO (begin) --------#
         # Note that, you have to further change each sentence in training_set into a binary BOW representation, given self.V
+        #prior probability = P(c = C)
 
         # Compute the conditional probabilities and priors from training data, and save them in:
         # self.prior
@@ -174,6 +184,7 @@ class NaiveBayesClassifier(object):
         return label_probability
 
 TASK = 'test'  #'train'  'test'
+
 
 
 if TASK=='train':
