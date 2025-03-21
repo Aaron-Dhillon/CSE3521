@@ -146,18 +146,20 @@ class NaiveBayesClassifier(object):
 
 
     def predict(self, test_sentence):
-
         # The input is one test sentence. See the HW_3_How_To.pptx for details
         
         # Your are going to save the log probability for each class of the test sentence. See the HW_3_How_To.pptx for details
         label_probability = {
             0: 0,
             1: 0,
-            -1:0,
+            -1: 0,
         }
 
         # This will tokenize the test_sentence: test_sentence[n] will be the "n-th" word in a sentence (n starts from 0)
+        # Convert test sentence to BOW representation using existing helper
         test_sentence = self.word_tokenization_sentence(test_sentence)
+        test_bow = self.to_BOW_sentence(test_sentence)
+        
 
         #-----------------------#
         #-------- TO DO (begin) --------#
@@ -170,6 +172,22 @@ class NaiveBayesClassifier(object):
         
 
         # -------- TO DO (end) --------#
+        labelmap = {
+            0: 0,   # neutral
+            1: 1,   # positive
+            -1: 2   # negative
+        }
+        # Calculate log probability for each class
+        for label in label_probability:
+            # Start with log prior probability
+            log_prob = np.log(self.prior[labelmap[label]])
+            
+            # Add log of conditional probabilities for each word feature
+            for word_idx, count in enumerate(test_bow):
+                if count > 0:  # If word appears in test sentence
+                    log_prob += np.log(self.conditional[labelmap[label]][word_idx]) * count
+            
+            label_probability[label] = log_prob
 
         return label_probability
 
@@ -193,4 +211,3 @@ if TASK == 'test':
     NBclassifier = pickle.load(f)
     f.close()    
     results, acc = evaluate_predictions(test_sentences, test_labels, NBclassifier)
-
