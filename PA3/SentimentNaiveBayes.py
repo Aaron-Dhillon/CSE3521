@@ -100,9 +100,9 @@ class NaiveBayesClassifier(object):
     def to_BOW_sentence(self, sentence):
         n = len(self.V)
         bow = [0]*n
-        for i in range(n):
-           if self.V[i] in sentence:
-               bow[i] = 1
+        for word in self.V.keys():
+            if word in sentence:
+                bow[self.V[word]] = 1
         return bow
 
 
@@ -192,7 +192,8 @@ class NaiveBayesClassifier(object):
         for label in label_probability.keys():
             prob = np.log(self.prior[label])
             for i in range(len(self.V)):
-                prob += np.log(self.conditional[label][i])
+                if(bow[i] == 1):
+                    prob += np.log(self.conditional[label][i])
             label_probability[label] = prob
         # Return a dictionary of log probability for each class for a given test sentence:
         # e.g., {0: -39.39854137691295, 1: -41.07638511893377, -1: -42.93948478571315}
@@ -223,4 +224,3 @@ if TASK == 'test':
     NBclassifier = pickle.load(f)
     f.close()    
     results, acc = evaluate_predictions(test_sentences, test_labels, NBclassifier)
-
