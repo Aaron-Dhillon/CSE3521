@@ -101,7 +101,8 @@ class NaiveBayesClassifier(object):
         n = len(self.V)
         bow = [0]*n
         for i in range(n):
-            bow[i] = sentence.count(self.V[i])
+           if self.V[i] in sentence:
+               bow[i] = 1
         return bow
 
 
@@ -135,7 +136,7 @@ class NaiveBayesClassifier(object):
         all_classes = set(training_labels)
         #-------- TO DO (begin) --------#
         # Note that, you have to further change each sentence in training_set into a binary BOW representation, given self.V
-
+        
         # Compute the conditional probabilities and priors from training data, and save them in:
         # self.prior
         # self.conditional
