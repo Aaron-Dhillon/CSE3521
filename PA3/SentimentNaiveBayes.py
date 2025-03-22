@@ -96,9 +96,10 @@ class NaiveBayesClassifier(object):
             V_dictionary[word] = int(dict_count)
             dict_count += 1
         return V_dictionary
+
     def to_BOW_sentence(self, sentence):
         n = len(self.V)
-        bow = [0 for i in range(n)]
+        bow = [0]*n
         for i in range(n):
             bow[i] = sentence.count(self.V[i])
         return bow
@@ -111,6 +112,7 @@ class NaiveBayesClassifier(object):
         i = 0
         for sentence in sentences:
             bow_array[i] = self.to_BOW_sentence(sentence)
+            i += 1
         return bow_array
 
 
