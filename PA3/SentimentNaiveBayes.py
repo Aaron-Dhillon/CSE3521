@@ -136,7 +136,29 @@ class NaiveBayesClassifier(object):
         all_classes = set(training_labels)
         #-------- TO DO (begin) --------#
         # Note that, you have to further change each sentence in training_set into a binary BOW representation, given self.V
+        self.BOW = self.to_BOW_array(training_set)
+        prior = {
+            0:0,
+            1:0,
+            -1:0
+        }
+        for i in range(N_sentences):
+            prior[training_labels[i]] += 1
+        self.prior = {
+            0:prior[0]/N_sentences,
+            1: prior[1]/N_sentences, 
+            -1: prior[-1]/N_sentences
+        }
+        self.conditional = {
+            0: [0]*len(self.V),
+            1: [0]*len(self.V),
+            -1: [0]*len(self.V)
+        }
         
+        for i in range(N_sentences):
+            for j in range(len(self.V)):
+                if self.BOW[i][j] == 1:
+                    self.conditional[training_labels[i]][j] += (1/training_labels.count(training_labels[i]))
         # Compute the conditional probabilities and priors from training data, and save them in:
         # self.prior
         # self.conditional
@@ -166,7 +188,12 @@ class NaiveBayesClassifier(object):
         #-------- TO DO (begin) --------#
         # Based on the test_sentence, please first turn it into the binary BOW representation (given self.V) and compute the log probability
         # Please then use self.prior and self.conditional to calculate the log probability for each class. See the HW_3_How_To.pptx for details 
-
+        bow = self.to_BOW_sentence(test_sentence)
+        for label in label_probability.keys():
+            prob = np.log(self.prior[label])
+            for i in range(len(self.V)):
+                prob += np.log(self.conditional[label][i])
+            label_probability[label] = prob
         # Return a dictionary of log probability for each class for a given test sentence:
         # e.g., {0: -39.39854137691295, 1: -41.07638511893377, -1: -42.93948478571315}
         # Please follow the PPT to first perform log (you may use np.log) to each probability term and sum them.
