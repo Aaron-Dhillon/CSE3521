@@ -138,27 +138,28 @@ class NaiveBayesClassifier(object):
         # Note that, you have to further change each sentence in training_set into a binary BOW representation, given self.V
         self.BOW = self.to_BOW_array(training_set)
         prior = {
-            0:0,
-            1:0,
-            -1:0
+            0:0.0,
+            1:0.0,
+            -1:0.0
         }
         for i in range(N_sentences):
-            prior[training_labels[i]] += 1
+            prior[training_labels[i]] += 1.0
         self.prior = {
             0:prior[0]/N_sentences,
             1: prior[1]/N_sentences, 
             -1: prior[-1]/N_sentences
         }
         self.conditional = {
-            0: [0]*len(self.V),
-            1: [0]*len(self.V),
-            -1: [0]*len(self.V)
+            0: [0.0]*len(self.V),
+            1: [0.0]*len(self.V),
+            -1: [0.0]*len(self.V)
         }
         
-        for i in range(N_sentences):
-            for j in range(len(self.V)):
+        for i in range(N_sentences):#current sentence
+            for j in range(len(self.V)):#word in sentence
                 if self.BOW[i][j] == 1:
-                    self.conditional[training_labels[i]][j] += (1/training_labels.count(training_labels[i]))
+                    self.conditional[training_labels[i]][j] += (1/prior[training_labels[i]])
+        #print(self.V)
         # Compute the conditional probabilities and priors from training data, and save them in:
         # self.prior
         # self.conditional
@@ -195,6 +196,7 @@ class NaiveBayesClassifier(object):
                 if(bow[i] == 1):
                     prob += np.log(self.conditional[label][i])
             label_probability[label] = prob
+        #print(self.prior)
         # Return a dictionary of log probability for each class for a given test sentence:
         # e.g., {0: -39.39854137691295, 1: -41.07638511893377, -1: -42.93948478571315}
         # Please follow the PPT to first perform log (you may use np.log) to each probability term and sum them.
