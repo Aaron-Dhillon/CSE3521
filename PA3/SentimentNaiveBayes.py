@@ -137,6 +137,7 @@ class NaiveBayesClassifier(object):
         #-------- TO DO (begin) --------#
         # Note that, you have to further change each sentence in training_set into a binary BOW representation, given self.V
         self.BOW = self.to_BOW_array(training_set)
+    
         prior = {
             0:0.0,
             1:0.0,
@@ -149,6 +150,8 @@ class NaiveBayesClassifier(object):
             1: prior[1]/N_sentences, 
             -1: prior[-1]/N_sentences
         }
+
+        
         self.conditional = {
             0: [0.0]*len(self.V),
             1: [0.0]*len(self.V),
@@ -184,6 +187,7 @@ class NaiveBayesClassifier(object):
 
         # This will tokenize the test_sentence: test_sentence[n] will be the "n-th" word in a sentence (n starts from 0)
         test_sentence = self.word_tokenization_sentence(test_sentence)
+        epsilon = 1e-10
 
         #-----------------------#
         #-------- TO DO (begin) --------#
@@ -193,8 +197,15 @@ class NaiveBayesClassifier(object):
         for label in label_probability.keys():
             prob = np.log(self.prior[label])
             for i in range(len(self.V)):
+                p = self.conditional[label][i]
                 if(bow[i] == 1):
-                    prob += np.log(self.conditional[label][i])
+                    if p < epsilon:
+                        p = epsilon
+                    prob += np.log(p)
+                else:
+                    if p ==1.0:
+                        p = p - epsilon
+                    prob += np.log(1-p)
             label_probability[label] = prob
         #print(self.prior)
         # Return a dictionary of log probability for each class for a given test sentence:
