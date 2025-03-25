@@ -97,6 +97,7 @@ class NaiveBayesClassifier(object):
             dict_count += 1
         return V_dictionary
 
+    #Makes the BOW for a single sentence
     def to_BOW_sentence(self, sentence):
         n = len(self.V)
         bow = [0]*n
@@ -106,7 +107,7 @@ class NaiveBayesClassifier(object):
         return bow
 
 
-
+    #makes the BOW for an array of sentences
     def to_BOW_array(self, sentences):
         n = len(sentences) #number of sentences
         bow_array = [0]*n
@@ -132,23 +133,25 @@ class NaiveBayesClassifier(object):
         # Get vocabulary (dictionary) used in training set
         self.V = self.compute_vocabulary(training_set)
 
-        # Get set of all classes
-        all_classes = set(training_labels)
         #-------- TO DO (begin) --------#
         # Note that, you have to further change each sentence in training_set into a binary BOW representation, given self.V
         self.BOW = self.to_BOW_array(training_set)
-    
-        prior = {
+
+        #counts of the senetences in each class
+        counts = {
             0:0.0,
             1:0.0,
             -1:0.0
         }
+
+        #get the counts of each sentenence in each class
         for i in range(N_sentences):
-            prior[training_labels[i]] += 1.0
+            counts[training_labels[i]] += 1.0
+        #calculate the priors probabilities
         self.prior = {
-            0:prior[0]/N_sentences,
-            1: prior[1]/N_sentences, 
-            -1: prior[-1]/N_sentences
+            0:counts[0]/N_sentences,
+            1: counts[1]/N_sentences, 
+            -1: counts[-1]/N_sentences
         }
 
         
@@ -161,8 +164,9 @@ class NaiveBayesClassifier(object):
         for i in range(N_sentences):#current sentence
             for j in range(len(self.V)):#word in sentence
                 if self.BOW[i][j] == 1:
-                    self.conditional[training_labels[i]][j] += (1/prior[training_labels[i]])
-        #print(self.V)
+                    #added count to the [class, word] for consitional and divided by count of class
+                    self.conditional[training_labels[i]][j] += (1/counts[training_labels[i]])
+
         # Compute the conditional probabilities and priors from training data, and save them in:
         # self.prior
         # self.conditional
@@ -193,21 +197,23 @@ class NaiveBayesClassifier(object):
         #-------- TO DO (begin) --------#
         # Based on the test_sentence, please first turn it into the binary BOW representation (given self.V) and compute the log probability
         # Please then use self.prior and self.conditional to calculate the log probability for each class. See the HW_3_How_To.pptx for details 
+
+        #get the BOW for the senetence
         bow = self.to_BOW_sentence(test_sentence)
-        for label in label_probability.keys():
+        for label in label_probability.keys(): #Goes through each label
             prob = np.log(self.prior[label])
-            for i in range(len(self.V)):
+            for i in range(len(self.V)): #Goes teach word
                 p = self.conditional[label][i]
-                if(bow[i] == 1):
-                    if p < epsilon:
+                if(bow[i] == 1): #If word in sentence add log(probability of that word occuring given class)
+                    if p < epsilon: #Epilon check to avoid division by 0 error
                         p = epsilon
                     prob += np.log(p)
-                else:
+                else: #If word not in sentence add log(probability of that word not occuring given class)
                     if p ==1.0:
                         p = p - epsilon
-                    prob += np.log(1-p)
+                    prob += np.log(1-p) 
             label_probability[label] = prob
-        #print(self.prior)
+
         # Return a dictionary of log probability for each class for a given test sentence:
         # e.g., {0: -39.39854137691295, 1: -41.07638511893377, -1: -42.93948478571315}
         # Please follow the PPT to first perform log (you may use np.log) to each probability term and sum them.
