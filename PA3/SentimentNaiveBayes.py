@@ -226,8 +226,8 @@ class NaiveBayesClassifier(object):
 
 TASK = 'test'  #'train'  'test'
 
-
-if TASK=='train':
+"""
+ if TASK=='train':
     train_folder = "data-sentiment/train/"       
     training_sentences, training_labels = data_reader(train_folder)
         
@@ -244,3 +244,4 @@ if TASK == 'test':
     NBclassifier = pickle.load(f)
     f.close()    
     results, acc = evaluate_predictions(test_sentences, test_labels, NBclassifier)
+"""
