@@ -53,7 +53,7 @@ def evaluate_predictions(test_set,test_labels,trained_classifier):
         else:
             predictions_list.append("-")
     
-    print("Total Sentences: ", len(test_labels))
+    print("Total Sentences correctly: ", len(test_labels))
     print("Predicted correctly: ", correct_predictions)
     print("Accuracy: {}%".format(round(correct_predictions/len(test_labels)*100,5)))
 
@@ -86,7 +86,6 @@ class NaiveBayesClassifier(object):
         for word in test_sentence.split(" "):
             cur_sentence.append(word.lower())
         return cur_sentence
-
     def compute_vocabulary(self, training_set):
         vocabulary = set()
         for sentence in training_set:
@@ -99,6 +98,7 @@ class NaiveBayesClassifier(object):
             dict_count += 1
         return V_dictionary
 
+    #Makes the BOW for a single sentence
     def to_BOW_sentence(self, sentence):
         n = len(self.V)
         bow = [0]*n
@@ -107,101 +107,182 @@ class NaiveBayesClassifier(object):
                 bow[self.V[word]] = 1
         return bow
 
+
+    #makes the BOW for an array of sentences
     def to_BOW_array(self, sentences):
-        n = len(sentences)
+        n = len(sentences) #number of sentences
         bow_array = [0]*n
-        for i, sentence in enumerate(sentences):
+        i = 0
+        for sentence in sentences:
             bow_array[i] = self.to_BOW_sentence(sentence)
+            i += 1
         return bow_array
 
+
+
+
     def train(self, training_sentences, training_labels):
+        
+        # See the HW_3_How_To.pptx for details
+        
+        # Get number of sentences in the training set
         N_sentences = len(training_sentences)
+
+        # This will turn the training_sentences into the format described in the HW_3_How_To.pptx
         training_set = self.word_tokenization_dataset(training_sentences)
+
+        # Get vocabulary (dictionary) used in training set
         self.V = self.compute_vocabulary(training_set)
+
+        #-------- TO DO (begin) --------#
+        # Note that, you have to further change each sentence in training_set into a binary BOW representation, given self.V
         self.BOW = self.to_BOW_array(training_set)
 
-        counts = {0:0.0, 1:0.0, -1:0.0}
+        #counts of the senetences in each class
+        counts = {
+            0:0.0,
+            1:0.0,
+            -1:0.0
+        }
+
+        #get the counts of each sentenence in each class
         for i in range(N_sentences):
             counts[training_labels[i]] += 1.0
+        #calculate the priors probabilities
+        self.prior = {
+            0:counts[0]/N_sentences,
+            1: counts[1]/N_sentences, 
+            -1: counts[-1]/N_sentences
+        }
 
-        self.prior = {0:counts[0]/N_sentences, 1: counts[1]/N_sentences, -1: counts[-1]/N_sentences}
-
-        self.conditional = {0: [0.0]*len(self.V), 1: [0.0]*len(self.V), -1: [0.0]*len(self.V)}
-        for i in range(N_sentences):
-            for j in range(len(self.V)):
+        
+        self.conditional = {
+            0: [0.0]*len(self.V),
+            1: [0.0]*len(self.V),
+            -1: [0.0]*len(self.V)
+        }
+        
+        for i in range(N_sentences):#current sentence
+            for j in range(len(self.V)):#word in sentence
                 if self.BOW[i][j] == 1:
+                    #added count to the [class, word] for consitional and divided by count of class
                     self.conditional[training_labels[i]][j] += (1/counts[training_labels[i]])
 
+        # Compute the conditional probabilities and priors from training data, and save them in:
+        # self.prior
+        # self.conditional
+        # You can use any data structure you want.
+        # You don't have to return anything. self.conditional and self.prior will be called in def predict():
+
+
+                                                 
+        # -------- TO DO (end) --------#
+
+
     def predict(self, test_sentence):
-        label_probability = {0: 0, 1: 0, -1: 0}
+
+        # The input is one test sentence. See the HW_3_How_To.pptx for details
+        
+        # Your are going to save the log probability for each class of the test sentence. See the HW_3_How_To.pptx for details
+        label_probability = {
+            0: 0,
+            1: 0,
+            -1:0,
+        }
+
+        # This will tokenize the test_sentence: test_sentence[n] will be the "n-th" word in a sentence (n starts from 0)
         test_sentence = self.word_tokenization_sentence(test_sentence)
         epsilon = 1e-10
-        bow = self.to_BOW_sentence(test_sentence)
 
-        for label in label_probability.keys():
+        #-----------------------#
+        #-------- TO DO (begin) --------#
+        # Based on the test_sentence, please first turn it into the binary BOW representation (given self.V) and compute the log probability
+        # Please then use self.prior and self.conditional to calculate the log probability for each class. See the HW_3_How_To.pptx for details 
+
+        #get the BOW for the senetence
+        bow = self.to_BOW_sentence(test_sentence)
+        for label in label_probability.keys(): #Goes through each label
             prob = np.log(self.prior[label])
-            for i in range(len(self.V)):
+            for i in range(len(self.V)): #Goes teach word
                 p = self.conditional[label][i]
-                if bow[i] == 1:
-                    if p < epsilon:
+                if(bow[i] == 1): #If word in sentence add log(probability of that word occuring given class)
+                    if p < epsilon: #Epilon check to avoid division by 0 error
                         p = epsilon
                     prob += np.log(p)
-                else:
-                    if p == 1.0:
+                else: #If word not in sentence add log(probability of that word not occuring given class)
+                    if p ==1.0:
                         p = p - epsilon
-                    prob += np.log(1-p)
+                    prob += np.log(1-p) 
             label_probability[label] = prob
 
-        return label_probability
+        # Return a dictionary of log probability for each class for a given test sentence:
+        # e.g., {0: -39.39854137691295, 1: -41.07638511893377, -1: -42.93948478571315}
+        # Please follow the PPT to first perform log (you may use np.log) to each probability term and sum them.
+        
 
+        # -------- TO DO (end) --------#
+
+        return label_probability
 def evaluate_naive_bayes_subset(training_sentences, training_labels, test_sentences, test_labels, subset_sizes):
     results = {}
+    
+    # Combine training data and labels
     data = list(zip(training_sentences, training_labels))
-    np.random.seed(42)
+    
+    # Shuffle the data
     shuffled_indices = np.random.permutation(len(data))
     data = [data[i] for i in shuffled_indices]
+    
+    # Separate after shuffling
     shuffled_sentences, shuffled_labels = zip(*data)
-
+    
     for subset_size in subset_sizes:
         print(f"\nTraining with subset size {subset_size}")
+        
         subset_sentences = shuffled_sentences[:subset_size]
         subset_labels = shuffled_labels[:subset_size]
-
+        
+        # Initialize and train Naive Bayes
         nb = NaiveBayesClassifier(n_gram=1)
         nb.train(subset_sentences, subset_labels)
-
+        
+        # Evaluate
         _, acc = evaluate_predictions(test_sentences, test_labels, nb)
         results[subset_size] = acc
-
+    
     return results
 
-TASK = 'test_subset'  # 'train'  'test' 'test_subset'
+TASK = 'test_subset'  #'train'  'test'
 
-if TASK == 'train':
-    train_folder = "data-sentiment/train/"
+
+if TASK=='train':
+    train_folder = "data-sentiment/train/"       
     training_sentences, training_labels = data_reader(train_folder)
+        
     NBclassifier = NaiveBayesClassifier(n_gram=1)
-    NBclassifier.train(training_sentences, training_labels)
+    NBclassifier.train(training_sentences,training_labels)
+    
     f = open('classifier.pkl', 'wb')
     pickle.dump(NBclassifier, f)
     f.close()
-
 if TASK == 'test':
     test_folder = "data-sentiment/test/"
     test_sentences, test_labels = data_reader(test_folder)
     f = open('classifier.pkl', 'rb')
     NBclassifier = pickle.load(f)
-    f.close()
+    f.close()    
     results, acc = evaluate_predictions(test_sentences, test_labels, NBclassifier)
-
 if TASK == 'test_subset':
     train_folder = "data-sentiment/train/"
     test_folder = "data-sentiment/test/"
+
     training_sentences, training_labels = data_reader(train_folder)
     test_sentences, test_labels = data_reader(test_folder)
-    subset_sizes = [25, 50, 150, 200, 300]
-    acc_results = evaluate_naive_bayes_subset(training_sentences, training_labels, test_sentences, test_labels, subset_sizes)
 
+    subset_sizes = [25, 50, 150, 200, 300]
+    
+    acc_results = evaluate_naive_bayes_subset(training_sentences, training_labels, test_sentences, test_labels, subset_sizes)
+    
     print("\nAccuracy results by subset size:")
     for size, acc in acc_results.items():
         print(f"Subset Size {size}: {acc}%")
