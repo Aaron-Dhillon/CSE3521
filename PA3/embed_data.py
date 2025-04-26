@@ -1,4 +1,4 @@
-# Author: Aaron Dhillon
+# Author: Aaron Dhillon and Ben Varkey
 # Description: Generate word2vec embeddings for sentiment analysis
 
 import numpy as np
